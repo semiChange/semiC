@@ -9,13 +9,15 @@
 
 int main()
 {
-    int cost, payment, change;
+    float cost = 0, payment = 0, change = 0;
     printf("请输入消费金额:");
-    scanf("%d",&cost);
-    printf("%d元\n",cost);
+    // 输入浮点型用 %f
+    scanf("%f", &cost);
+    printf("%.2f元\n", cost);
     printf("请输入收款金额:");
-    scanf("%d",&payment);
-    printf("%d元\n",payment);
-    printf("找零金额:%d元\n",payment-cost);
+    scanf("%f", &payment);
+    printf("%.2f元\n", payment);
+    change = payment - cost;
+    printf("找零金额:%.2f元\n", change);
     return 0; 
 }
