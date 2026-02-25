@@ -9,9 +9,9 @@
       "stopAtEntry": false,
       "externalConsole": true,
       "cwd": "d:/code_c/c",
-      "program": "d:/code_c/c/build/Debug/outDebug",
+        "program": "${fileDirname}\\${fileBasenameNoExtension}.exe",
       "MIMode": "gdb",
-      "miDebuggerPath": "gdb",
+      "miDebuggerPath": "D:\\Qt\\Qt5.14.1\\Tools\\mingw730_32\\bin\\gdb.exe",
       "setupCommands": [
         {
           "description": "Enable pretty-printing for gdb",
