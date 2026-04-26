@@ -12,3 +12,6 @@ int main() {
 
     return 0;
 }
+
+// 如果是多个数
+// printf("平均数: %f\n", (sum)*1.0 / n);

@@ -1,7 +1,9 @@
+#define SDL_MAIN_HANDLED
 #include <Windows.h>
 #include <stdio.h>
 #include <mmsystem.h>
-#pragma comment(lib, "winmm.lib")
+#include <SDL2/SDL.h>
+// #pragma comment(lib, "winmm.lib")
 
 // 定义一些常用的颜色代码，方便记忆
 // 格式：前景色 + 背景色 * 16
@@ -34,8 +36,52 @@ void set_color(int foreground, int background)
 	SetConsoleTextAttribute(hConsole, foreground + background * 16);
 }
 
+void play_wav(const char* filename) {
+    if (SDL_Init(SDL_INIT_AUDIO) < 0) {
+        printf("SDL_Init error: %s\n", SDL_GetError());
+        return;
+    }
+
+    SDL_AudioSpec spec;
+    Uint8 *buf = NULL;
+    Uint32 len = 0;
+
+    if (!SDL_LoadWAV(filename, &spec, &buf, &len)) {
+        printf("SDL_LoadWAV error: %s\n", SDL_GetError());
+        SDL_Quit();
+        return;
+    }
+
+    SDL_AudioDeviceID dev = SDL_OpenAudioDevice(NULL, 0, &spec, NULL, 0);
+    if (!dev) {
+        printf("SDL_OpenAudioDevice error: %s\n", SDL_GetError());
+        SDL_free(buf);
+        SDL_Quit();
+        return;
+    }
+
+    if (SDL_QueueAudio(dev, buf, len) < 0) {
+        printf("SDL_QueueAudio error: %s\n", SDL_GetError());
+        SDL_CloseAudioDevice(dev);
+        SDL_free(buf);
+        SDL_Quit();
+        return;
+    }
+
+    SDL_PauseAudioDevice(dev, 0); // 开始播放
+
+    // 等待播放结束
+    while (SDL_GetQueuedAudioSize(dev) > 0) {
+        SDL_Delay(100);
+    }
+
+    SDL_CloseAudioDevice(dev);
+    SDL_free(buf);
+    SDL_Quit();
+}
+
 // 该程序检测指定点的rgb值,报警
-int main()
+int main(int argc, char *argv[])
 {
 
 	char pos[32] = {0};
@@ -142,6 +188,9 @@ int main()
 	char curpos[32] = {0};
 	char currgba[32] = {0};
 
+	// 1. 先停止当前所有播放，释放资源（相当于“清空缓存”）
+	// PlaySound(NULL, NULL, SND_PURGE);
+
 	while (1)
 	{
 		Sleep(2200);
@@ -188,8 +237,13 @@ int main()
 			printf("%44s alarm...%44s\n", "", "");
 			// 恢复到程序启动时的原始颜色
 			SetConsoleTextAttribute(hConsole, saved_attributes);
+			LPCSTR soundPath = "alarm.wav";
+			// playsound会缓存音频文件，所以如果需要重复播放同一个文件，最好先停止当前播放，稍作延迟，再播放。
+			// PlaySound(soundPath, NULL, SND_FILENAME | SND_ASYNC);
+			// 弹出播放器播放
+			// ShellExecute(NULL, "open", "alarm.wav", NULL, NULL, SW_SHOWNORMAL);
 
-			PlaySound(TEXT("alarm.wav"), NULL, SND_FILENAME | SND_ASYNC);
+			play_wav(soundPath); // 替换文件后立即生效
 		}
 	}
 	FreeLibrary(hM);

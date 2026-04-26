@@ -1,1 +1,0 @@
-PlaySound(TEXT("alarm.wav"), NULL, SND_FILENAME | SND_ASYNC);

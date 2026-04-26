@@ -34,7 +34,12 @@
                 "${file}",
                 "-o",
                 "${fileDirname}\\${fileBasenameNoExtension}.exe",
-                "-lwinmm"
+                "-I",
+                "D:\\Qt\\Qt5.14.1\\Tools\\mingw730_32\\include",
+                "-L",
+                "D:\\Qt\\Qt5.14.1\\Tools\\mingw730_32\\lib",
+                "-lSDL3",
+                // "-lwinmm"
             ],
             "options": {
                 "cwd": "D:\\Qt\\Qt5.14.1\\Tools\\mingw730_32\\bin\\"
