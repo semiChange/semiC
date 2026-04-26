@@ -86,6 +86,8 @@ int main(int argc, char *argv[])
 
 	char pos[32] = {0};
 	char rgba[32] = {0};
+	char pos[32] = {0};
+	char rgba[32] = {0};
 	FILE *f = fopen("config.ini", "r");
 	if (f == NULL)
 	{
@@ -96,6 +98,7 @@ int main(int argc, char *argv[])
 	{
 		// read config prama
 		char str[256];
+		int kk = 0;
 		int kk = 0;
 		while (fgets(str, sizeof(str), f))
 		{
@@ -146,10 +149,16 @@ int main(int argc, char *argv[])
 	// 注意函数的 指针类型一定要正确, 否则会报错!!!  WINAPI
 	// typedef COLORREF (*Func)(HDC hdc, int a, int b);
 	typedef COLORREF(WINAPI * Func)(HDC hdc, int a, int b);
+	// 注意函数的 指针类型一定要正确, 否则会报错!!!  WINAPI
+	// typedef COLORREF (*Func)(HDC hdc, int a, int b);
+	typedef COLORREF(WINAPI * Func)(HDC hdc, int a, int b);
 
 	hM = LoadLibrary("gdi32.dll");
 	POINT ptB = {0, 0};
 	LPPOINT xy = &ptB; // 内存地址
+	ptB.x = 0;		   // 初始化
+	ptB.y = 0;
+	COLORREF cr = RGB(0, 0, 0); // 初始化，避免未赋值;
 	ptB.x = 0;		   // 初始化
 	ptB.y = 0;
 	COLORREF cr = RGB(0, 0, 0); // 初始化，避免未赋值;
@@ -164,7 +173,23 @@ int main(int argc, char *argv[])
 		printf("GetProcAddress 获取 GetPixel 失败！\n");
 		return 1;
 	}
+	if (fu == NULL)
+	{
+		printf("GetProcAddress 获取 GetPixel 失败！\n");
+		return 1;
+	}
 	// 获取配置pos的像素点
+	char pos_copy[32];
+	strcpy(pos_copy, pos); // strtok 会修改原字符串
+	char *sx_str = strtok(pos_copy, ",");
+	char *sy_str = strtok(NULL, ",");
+	if (sx_str == NULL || sy_str == NULL)
+	{
+		printf("配置文件pos格式错误！应为:x,y\n");
+		return 1;
+	}
+	int sx = atoi(sx_str);
+	int sy = atoi(sy_str);
 	char pos_copy[32];
 	strcpy(pos_copy, pos); // strtok 会修改原字符串
 	char *sx_str = strtok(pos_copy, ",");
@@ -194,8 +219,14 @@ int main(int argc, char *argv[])
 	while (1)
 	{
 		Sleep(2200);
+		Sleep(2200);
 		fflush(stdout);
 		// 不停获取内存中的值
+		if (!GetCursorPos(xy))
+		{
+			printf("GetCursorPos 失败\n");
+			continue;
+		}
 		if (!GetCursorPos(xy))
 		{
 			printf("GetCursorPos 失败\n");
@@ -206,7 +237,13 @@ int main(int argc, char *argv[])
 		zy = xy->y;
 		// 每次都获取当前像素点
 		cr = fu(hdc, zx, zy);
+		zy = xy->y;
+		// 每次都获取当前像素点
+		cr = fu(hdc, zx, zy);
 
+		ca = (int)GetRValue(cr);
+		cb = (int)GetGValue(cr);
+		cc = (int)GetBValue(cr);
 		ca = (int)GetRValue(cr);
 		cb = (int)GetGValue(cr);
 		cc = (int)GetBValue(cr);
@@ -214,7 +251,11 @@ int main(int argc, char *argv[])
 		snprintf(curpos, sizeof(curpos), "%d,%d", zx, zy);
 		memset(currgba, 0, sizeof(currgba)); // 清空字符串
 		// printf("ca=%d cb=%d cc=%d\n", ca, cb, cc); // 调试输出
+		snprintf(curpos, sizeof(curpos), "%d,%d", zx, zy);
+		memset(currgba, 0, sizeof(currgba)); // 清空字符串
+		// printf("ca=%d cb=%d cc=%d\n", ca, cb, cc); // 调试输出
 		snprintf(currgba, sizeof(currgba), "%d,%d,%d", ca, cb, cc);
+		printf("MOUSE INFO ==> pos:%s\t rgba:%s\n", curpos, currgba);
 		printf("MOUSE INFO ==> pos:%s\t rgba:%s\n", curpos, currgba);
 
 		// --------------------
@@ -223,7 +264,16 @@ int main(int argc, char *argv[])
 		r = GetRValue(cr1);
 		g = GetGValue(cr1);
 		b = GetBValue(cr1);
+		cr1 = fu(hdc, sx, sy);
+		// printf("配置的位置%d %d",sx,sy); // 同pos变量
+		r = GetRValue(cr1);
+		g = GetGValue(cr1);
+		b = GetBValue(cr1);
 
+		char findrgba[32] = {0};
+		snprintf(findrgba, sizeof(findrgba), "%d,%d,%d", r, g, b);
+		// printf("=%s=",findrgba);
+		printf("FOUND INFO ==> POS:%d,%d\t RGBA:%s (%s) \n\n", sx, sy, findrgba, rgba);
 		char findrgba[32] = {0};
 		snprintf(findrgba, sizeof(findrgba), "%d,%d,%d", r, g, b);
 		// printf("=%s=",findrgba);
